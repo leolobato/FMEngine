@@ -10,12 +10,12 @@
 
 @implementation FMEngineURLConnection
 
-@synthesize callback;
+@synthesize callback = _callback;
 
 - (id)initWithRequest:(NSURLRequest *)request delegate:(id)delegate {
 	if (self = [super initWithRequest:request delegate:delegate]) {
 		_receivedData = [[NSMutableData alloc] initWithCapacity:0];
-		_id = [[NSString stringWithNewUUID] retain];
+		_id = [NSString stringWithNewUUID];
 	}
 	return self;
 }
@@ -23,7 +23,7 @@
 - (id)initWithRequest:(NSURLRequest *)request {
 	if (self = [super initWithRequest:request delegate:self]) {
 		_receivedData = [[NSMutableData alloc] initWithCapacity:0];
-		_id = [[NSString stringWithNewUUID] retain];
+		_id = [NSString stringWithNewUUID];
 	}
 	return self;
 }
@@ -38,19 +38,15 @@
 
 - (void)connection:(FMEngineURLConnection *)connection didFailWithError:(NSError *)error {
 	// TODO: Error Handling
-	[callback setUserInfo:error];
-	[callback fire];
+	[self.callback setUserInfo:error];
+	[self.callback fire];
 	
-    [connection release];
-    [_receivedData release];
 }
 
 - (void)connectionDidFinishLoading:(FMEngineURLConnection *)connection {
-	[callback setUserInfo:_receivedData];
-	[callback fire];
+	[self.callback setUserInfo:_receivedData];
+	[self.callback fire];
 	
-    [connection release];
-    [_receivedData release];
 }
 
 - (void)appendData:(NSData *)moreData {
@@ -65,10 +61,5 @@
 	return _id;
 }
 
-- (void)dealloc {
-	[callback release];
-
-	[super dealloc];
-}
 
 @end

@@ -9,17 +9,12 @@
 #import <Foundation/Foundation.h>
 
 
-@interface FMCallback : NSObject {
-	id _target;
-	SEL _selector;
-	id _userInfo;
-	id _identifier;
-}
+@interface FMCallback : NSObject
 
-@property (nonatomic, assign) id target;
+@property (nonatomic, weak) id<NSObject> target;
 @property (nonatomic, assign) SEL selector;
-@property (nonatomic, assign) id userInfo;
-@property (nonatomic, assign) id identifier;
+@property (nonatomic, weak) id userInfo;
+@property (nonatomic, weak) id identifier;
 
 + (id)callbackWithTarget:(id)target action:(SEL)action userInfo:(id)userInfo;
 + (id)callbackWithTarget:(id)target action:(SEL)action userInfo:(id)userInfo object:(id)identifier;

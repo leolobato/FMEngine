@@ -16,9 +16,9 @@
 + (NSString *)stringWithNewUUID {
     CFUUIDRef uuidObj = CFUUIDCreate(nil);
     
-    NSString *newUUID = (NSString*)CFUUIDCreateString(nil, uuidObj);
+    NSString *newUUID = (NSString*)CFBridgingRelease(CFUUIDCreateString(nil, uuidObj));
     CFRelease(uuidObj);
-    return [newUUID autorelease];
+    return newUUID;
 }
 
 - (NSString *)md5sum {
@@ -28,7 +28,7 @@
 	for (i=0;i<CC_MD5_DIGEST_LENGTH;i++) {
 		[ms appendFormat: @"%02x", (int)(digest[i])];
 	}
-	return [[ms copy] autorelease];
+	return [ms copy];
 }
 
 - (BOOL)isPOST {
