@@ -35,5 +35,12 @@
 - (void)performMethod:(NSString *)method withTarget:(id)target withParameters:(NSDictionary *)params andAction:(SEL)callback useSignature:(BOOL)useSig httpMethod:(NSString *)httpMethod;
 - (NSData *)dataForMethod:(NSString *)method withParameters:(NSDictionary *)params useSignature:(BOOL)useSig httpMethod:(NSString *)httpMethod error:(NSError *)err;
 
+- (void)performMethod:(NSString *)method
+       withParameters:(NSDictionary *)params
+         useSignature:(BOOL)useSig
+           httpMethod:(NSString *)httpMethod
+         successBlock:(void (^)(NSHTTPURLResponse *response, NSDictionary *json))successBlock
+            failBlock:(void (^)(NSHTTPURLResponse *response, NSDictionary *json, NSError *error))failBlock;
+
 
 @end

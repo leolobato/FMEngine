@@ -10,7 +10,13 @@
 #import "FMCallback.h"
 #import "FMEngineURLConnection.h"
 
+@interface FMEngine ()
+@property (nonatomic, readonly) NSOperationQueue *queue;
+@end
+
 @implementation FMEngine
+
+@synthesize queue = _queue;
 
 static NSInteger sortAlpha(NSString *n1, NSString *n2, void *context) {
 	return [n1 caseInsensitiveCompare:n2];
@@ -69,7 +75,98 @@ static NSInteger sortAlpha(NSString *n1, NSString *n2, void *context) {
 	if(connection) {
 		[connections setObject:connection forKey:connectionId];
 	}
+}
 
+- (NSOperationQueue *)queue;
+{
+    if (!_queue) {
+        _queue = [[NSOperationQueue alloc] init];
+        _queue.maxConcurrentOperationCount = 1;
+    }
+    return _queue;
+}
+
+- (void)performMethod:(NSString *)method
+       withParameters:(NSDictionary *)params
+         useSignature:(BOOL)useSig
+           httpMethod:(NSString *)httpMethod
+         successBlock:(void (^)(NSHTTPURLResponse *response, NSDictionary *json))successBlock
+            failBlock:(void (^)(NSHTTPURLResponse *response, NSDictionary *json, NSError *error))failBlock;
+{
+	NSString *dataSig;
+	NSMutableURLRequest *request;
+	NSMutableDictionary *tempDict = [[NSMutableDictionary alloc] initWithDictionary:params];
+    
+    [tempDict setObject:_LASTFM_API_KEY_ forKey:@"api_key"];
+    
+	
+	[tempDict setObject:method forKey:@"method"];
+	if(useSig == TRUE) {
+		dataSig = [self generateSignatureFromDictionary:tempDict];
+		
+		[tempDict setObject:dataSig forKey:@"api_sig"];
+	}
+	
+#ifdef _USE_JSON_
+	if(![httpMethod isPOST]) {
+		[tempDict setObject:@"json" forKey:@"format"];
+	}
+    
+#endif
+	
+	params = [NSDictionary dictionaryWithDictionary:tempDict];
+    
+	if(![httpMethod isPOST]) {
+		NSURL *dataURL = [self generateURLFromDictionary:params];
+		request = [NSURLRequest requestWithURL:dataURL];
+	} else {
+#ifdef _USE_JSON_
+		request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:[_LASTFM_BASEURL_ stringByAppendingString:@"?format=json"]]];
+#else
+		request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:_LASTFM_BASEURL_]];
+#endif
+		[request setHTTPMethod:httpMethod];
+		[request setHTTPBody:[[self generatePOSTBodyFromDictionary:params] dataUsingEncoding:NSUTF8StringEncoding]];
+	}
+    
+    [NSURLConnection sendAsynchronousRequest:request
+                                       queue:self.queue
+                           completionHandler:
+     ^(NSURLResponse *response, NSData *data, NSError *error) {
+         
+         NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+         BOOL success = YES;
+         
+         if (error || httpResponse.statusCode!=200) {
+             success = NO;
+         }
+         
+         error = nil;
+         NSDictionary *json = nil;
+         if (success) {
+             json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
+             NSLog(@"%@", json);
+             
+             if (error) {
+                 success = NO;
+             }
+         }
+         
+         if (success) {
+             NSNumber *errorCode = [json objectForKey:@"error"];
+             if (errorCode) {
+                 success = NO;
+             }
+         }
+         
+         if (success) {
+             successBlock(httpResponse, json);
+         } else {
+             failBlock(httpResponse, json, error);
+         }
+         
+     }];
+    
 }
 
 - (NSData *)dataForMethod:(NSString *)method withParameters:(NSDictionary *)params useSignature:(BOOL)useSig httpMethod:(NSString *)httpMethod error:(NSError *)err {
