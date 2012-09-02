@@ -97,8 +97,7 @@ static NSInteger sortAlpha(NSString *n1, NSString *n2, void *context) {
 	NSMutableURLRequest *request;
 	NSMutableDictionary *tempDict = [[NSMutableDictionary alloc] initWithDictionary:params];
     
-    [tempDict setObject:_LASTFM_API_KEY_ forKey:@"api_key"];
-    
+    [tempDict setObject:self.apiKey forKey:@"api_key"];
 	
 	[tempDict setObject:method forKey:@"method"];
 	if(useSig == TRUE) {
@@ -255,7 +254,7 @@ static NSInteger sortAlpha(NSString *n1, NSString *n2, void *context) {
 		[rawSignature appendString:[NSString stringWithFormat:@"%@%@", key, [dict objectForKey:key]]];
 	}
 	
-	[rawSignature appendString:_LASTFM_SECRETK_];
+	[rawSignature appendString:self.apiSecret];
 	
 	NSString *signature = [rawSignature md5sum];
 	

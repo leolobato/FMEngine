@@ -9,8 +9,6 @@
 #import <Foundation/Foundation.h>
 #import "NSString+FMEngine.h"
 
-#define _LASTFM_API_KEY_ @"YOUR_API_KEY"
-#define _LASTFM_SECRETK_ @"YOUR_SECRET_KEY"
 #define _LASTFM_BASEURL_ @"http://ws.audioscrobbler.com/2.0/"
 
 // Comment the next line to use XML
@@ -25,6 +23,9 @@
 	NSMutableData *receivedData;
 	NSMutableDictionary *connections;
 }
+
+@property (nonatomic, strong) NSString *apiKey;
+@property (nonatomic, strong) NSString *apiSecret;
 
 
 - (NSString *)generateAuthTokenFromUsername:(NSString *)username password:(NSString *)password;
