@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "NSString+FMEngine.h"
 
+#define _LASTFM_API_ENDPOINT_ @"ws.audioscrobbler.com/2.0/"
 #define _LASTFM_BASEURL_ @"http://ws.audioscrobbler.com/2.0/"
 
 // Comment the next line to use XML
@@ -16,6 +17,12 @@
 
 #define POST_TYPE	@"POST"
 #define GET_TYPE	@"GET"
+
+typedef enum {
+    FMEngineRequestOptionsNone,
+    FMEngineRequestOptionsUseSignature = 1,
+    FMEngineRequestOptionsHTTPS = 2
+} FMEngineRequestOptions;
 
 @class FMEngine;
 
@@ -38,7 +45,7 @@
 
 - (void)performMethod:(NSString *)method
        withParameters:(NSDictionary *)params
-         useSignature:(BOOL)useSig
+              options:(NSInteger)options
            httpMethod:(NSString *)httpMethod
          successBlock:(void (^)(NSHTTPURLResponse *response, NSDictionary *json))successBlock
             failBlock:(void (^)(NSHTTPURLResponse *response, NSDictionary *json, NSError *error))failBlock;

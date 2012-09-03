@@ -88,13 +88,16 @@ static NSInteger sortAlpha(NSString *n1, NSString *n2, void *context) {
 
 - (void)performMethod:(NSString *)method
        withParameters:(NSDictionary *)params
-         useSignature:(BOOL)useSig
+              options:(NSInteger)options
            httpMethod:(NSString *)httpMethod
          successBlock:(void (^)(NSHTTPURLResponse *response, NSDictionary *json))successBlock
-            failBlock:(void (^)(NSHTTPURLResponse *response, NSDictionary *json, NSError *error))failBlock;
+            failBlock:(void (^)(NSHTTPURLResponse *response, NSDictionary *json, NSError *error))failBlock
 {
-	NSString *dataSig;
-	NSMutableURLRequest *request;
+    BOOL useSig = options & FMEngineRequestOptionsUseSignature;
+    BOOL https = options & FMEngineRequestOptionsHTTPS;
+    
+	NSString *dataSig = nil;
+	NSMutableURLRequest *request = nil;
 	NSMutableDictionary *tempDict = [[NSMutableDictionary alloc] initWithDictionary:params];
     
     [tempDict setObject:self.apiKey forKey:@"api_key"];
@@ -119,11 +122,14 @@ static NSInteger sortAlpha(NSString *n1, NSString *n2, void *context) {
 		NSURL *dataURL = [self generateURLFromDictionary:params];
 		request = [NSURLRequest requestWithURL:dataURL];
 	} else {
+        NSString *scheme = https ? @"https://" : @"http://";
+        NSString *url = [NSString stringWithFormat:@"%@%@",
+                         scheme, _LASTFM_API_ENDPOINT_];
+        
 #ifdef _USE_JSON_
-		request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:[_LASTFM_BASEURL_ stringByAppendingString:@"?format=json"]]];
-#else
-		request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:_LASTFM_BASEURL_]];
+        url = [url stringByAppendingString:@"?format=json"];
 #endif
+		request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url]];
 		[request setHTTPMethod:httpMethod];
 		[request setHTTPBody:[[self generatePOSTBodyFromDictionary:params] dataUsingEncoding:NSUTF8StringEncoding]];
 	}
@@ -144,7 +150,6 @@ static NSInteger sortAlpha(NSString *n1, NSString *n2, void *context) {
          NSDictionary *json = nil;
          if (success) {
              json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
-             NSLog(@"%@", json);
              
              if (error) {
                  success = NO;
